@@ -9,12 +9,17 @@ import {
   YAxis,
 } from "recharts";
 import DropdownTimePeriod from "../ui/DropdownTimePeriod";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { DashboardControllerApi, type MonthlyTotalDTO } from "../../api/api";
 import { apiConfig } from "../../config/api";
+import { AxiosError } from "axios";
 
-export default function GraficoFluxoFinanceiro() {
+export default function GraficoFluxoFinanceiro({
+  setError,
+}: {
+  setError: Dispatch<SetStateAction<string>>;
+}) {
   const { theme } = useTheme();
   const [data, setData] = useState<MonthlyTotalDTO[]>([]);
   const [timePeriod, setTimePeriod] = useState<number>(
@@ -28,15 +33,16 @@ export default function GraficoFluxoFinanceiro() {
         setData(res.data ?? []);
       });
     } catch (error) {
-      console.error("Erro ao buscar dados do fluxo financeiro:", error);
+      setError(
+        error instanceof AxiosError
+          ? error.response!.data.message
+          : "Erro ao tentar buscar informações do grafico de linha",
+      );
     }
   }, [timePeriod]);
 
   if (!data) return null;
 
-  console.log(data);
-
-  // 🎨 Cores corretas de acordo com o tema
   const textColor = theme === "light" ? "#1f2937" : "#e5e7eb"; // gray-800 / gray-200
   const gridColor = theme === "light" ? "#e5e7eb" : "#374151"; // gray-200 / gray-700
   const tooltipBg = theme === "light" ? "#f9fafb" : "#1f2937"; // gray-50 / gray-800

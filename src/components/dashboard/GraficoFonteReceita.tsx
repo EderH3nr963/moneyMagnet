@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import {
   Bar,
   BarChart,
@@ -13,8 +13,13 @@ import { DashboardControllerApi, type CategoryTotalDTO } from "../../api";
 import { apiConfig } from "../../config/api";
 import { DropdownTimePeriod } from "../ui";
 import { useTheme } from "../../context";
+import { AxiosError } from "axios";
 
-export default function GraficoFonteReceita() {
+export default function GraficoFonteReceita({
+  setError,
+}: {
+  setError: Dispatch<SetStateAction<string>>;
+}) {
   const [data, setData] = useState<CategoryTotalDTO[]>([]);
   const [timePeriod, setTimePeriod] = useState<number>(
     new Date().getFullYear(),
@@ -33,12 +38,14 @@ export default function GraficoFonteReceita() {
         const response = await dashboardApi.getCategoryTotals(timePeriod);
         setData(response.data);
       } catch (error) {
-        console.error(error);
+        setError(
+          error instanceof AxiosError
+            ? error.response!.data.message
+            : "Erro ao tentar buscar informações do grafico de pizza",
+        );
       }
     })();
   }, [timePeriod]);
-
-  console.log(data);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("pt-BR", {

@@ -17,10 +17,13 @@ import {
   type TransactionResponseDTO,
 } from "../api";
 import { apiConfig } from "../config/api";
+import { BoxMessage } from "../components";
+import { AxiosError } from "axios";
 
 export default function HomePage() {
   const { user } = useAuth();
   const [transaction, setTransaction] = useState<TransactionResponseDTO[]>([]);
+  const [error, setError] = useState<string>("");
   const [summaryData, setSummaryData] = useState<DashboardSummaryDTO>({
     receita: 0,
     lucro: 0,
@@ -37,8 +40,12 @@ export default function HomePage() {
         });
         const data = response.data?.transactions ?? [];
         setTransaction(data ?? []);
-      } catch (error) {
-        console.error("Erro ao buscar transações:", error);
+      } catch (error: unknown) {
+        setError(
+          error instanceof AxiosError
+            ? error.response!.data.message
+            : "Erro ao tentar buscar transações",
+        );
       }
     }
     fetchTransaction();
@@ -128,11 +135,11 @@ export default function HomePage() {
             </div>
           </div>
 
-          <GraficoFluxoFinanceiro />
+          <GraficoFluxoFinanceiro setError={setError} />
         </section>
 
         <section className="flex flex-col lg:flex-row w-full justify-center items-start gap-6 mt-20 mb-20">
-          <GraficoFonteReceita />
+          <GraficoFonteReceita setError={setError} />
 
           <div className="w-full lg:w-1/2 mt-6 lg:mt-0">
             <div className="flex justify-between mb-4">
@@ -194,6 +201,7 @@ export default function HomePage() {
           </div>
         </section>
         <FloatButtonCSV />
+        {error && <BoxMessage error={true} message={error} />}
       </main>
       <Footer />
     </div>
