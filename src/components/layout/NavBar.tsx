@@ -7,7 +7,7 @@ export default function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const displayName =
-    (user?.user_metadata?.name as string | undefined) ??
+    (user?.username as string | undefined) ??
     (user?.email as string | undefined) ??
     "Usuário";
   const initials = displayName
@@ -16,8 +16,7 @@ export default function NavBar() {
     .slice(0, 2)
     .map((n) => n[0].toUpperCase())
     .join("");
-  const avatarUrl =
-    (user?.user_metadata?.avatar_url as string | undefined) ?? undefined;
+  const avatarUrl = undefined;
 
   return (
     <nav className="w-full border-b border-gray-200 bg-white/80 backdrop-blur shadow-md dark:bg-gray-900 dark:border-gray-700">
