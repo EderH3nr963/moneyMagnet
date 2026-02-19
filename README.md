@@ -18,13 +18,20 @@ O objetivo do projeto é oferecer uma ferramenta simples e eficiente para contro
 
 Funcionalidades
 
-✅ Dashboard financeiro com gráficos dinâmicos
+✅ Dashboard financeiro com gráficos dinâmicos 
+
 ✅ Cadastro de receitas e despesas
+
 ✅ Categorias personalizáveis
+
 ✅ Sumário mensal(mês atual)
+
 ✅ Autenticação com JWT
+
 ✅ Integração com API REST
+
 ✅ Importação de planilhas .xlsx
+
 🔜 Exportação de relatórios (planejado)
 
 ## Arquitetura do Projeto
@@ -91,4 +98,5 @@ npm run dev
 ## Deploy
 
 Frontend hospedado na Vercel
+
 Backend hospedado no Render
