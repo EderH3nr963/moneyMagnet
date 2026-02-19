@@ -111,7 +111,7 @@ export default function ImportCSV() {
 
                   <input
                     type="file"
-                    accept=".xlsx, .xls"
+                    accept=".xlsx"
                     onChange={handleFileUpload}
                     disabled={isLoading}
                     className="block w-full text-sm text-purple-600 dark:text-purple-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 file:cursor-pointer cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"

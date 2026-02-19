@@ -8,17 +8,21 @@ import {
 import type { UsuarioResponseDTO } from "../api";
 
 type AuthContextType = {
-  user: any;
+  user: UsuarioResponseDTO | null;
   expireAt: Date | null;
   loading: boolean;
   signOut: () => Promise<void>;
-  signIn: (userData: any, token: string, expiresAt: string) => void;
+  signIn: (
+    userData: UsuarioResponseDTO,
+    token: string,
+    expiresAt: string,
+  ) => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<UsuarioResponseDTO | null>(null);
   const [expireAt, setExpireAt] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,8 +31,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("token");
     const storedExpire = localStorage.getItem("expiresAt");
-
-    console.log(storedToken);
 
     if (storedUser && storedToken && storedExpire) {
       const expires = new Date(parseInt(storedExpire));
@@ -89,8 +91,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useAuth = () => {
+export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
   return ctx;
-};
+}
