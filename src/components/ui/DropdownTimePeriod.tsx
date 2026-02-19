@@ -13,10 +13,11 @@ export default function DropdownTimePeriod({
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const { user } = useAuth();
 
-  console.log();
+  const createdAtUser = user?.createdAt;
 
-  const initialYear =
-    new Date(user.createdAt).getFullYear() - 2 || new Date().getFullYear();
+  const initialYear = createdAtUser
+    ? new Date(createdAtUser).getFullYear() - 2
+    : new Date().getFullYear() - 2;
 
   const years: number[] = [];
   for (let i = initialYear; i <= new Date().getFullYear(); i++) {
