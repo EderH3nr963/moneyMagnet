@@ -11,7 +11,7 @@ import {
   BoxMessage,
 } from "../components";
 import { AxiosError } from "axios";
-import { useTransactions } from "../hooks/useTransactions";
+import { useTransactions } from "../hooks/useTransaction";
 
 export default function TransactionsPage() {
   const navigate = useNavigate();
