@@ -1,47 +1,63 @@
 import { useState } from "react";
-import { signUp } from "../services/authServices";
-import BoxMessage from "../components/BoxMessage";
 import { useNavigate } from "react-router";
+import { AutorizacaoApi } from "../api";
+import { apiConfig } from "../config/api";
+import { useAuth } from "../context";
+import { BoxMessage } from "../components";
+import { AxiosError } from "axios";
 
 export default function Register() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPass: ''
+    name: "",
+    email: "",
+    password: "",
+    confirmPass: "",
   });
-  const [message, setMessage] = useState<string | undefined>();
+  const [message, setMessage] = useState<string | null>();
   const [isError, setIsError] = useState<boolean>(true);
+  const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit() {
-    setMessage(undefined);
-
-    if (form.password !== form.confirmPass) {
-      setMessage('As senhas não coincidem');
-      return;
-    }
-
-    if (!form.email || !form.password || !form.name) {
-      setMessage('Preencha todos os campos');
-      return;
-    }
-
-    setLoading(true);
     try {
-      await signUp({
-        name: form.name,
+      setMessage(null);
+      setLoading(true);
+
+      const authApi = new AutorizacaoApi(apiConfig);
+
+      const response = await authApi.usuarioRegister({
         email: form.email,
-        password: form.password
+        username: form.name,
+        password: form.password,
+        confirmPassword: form.confirmPass,
       });
+      if (
+        !response.data.token ||
+        !response.data.usuario ||
+        !response.data.expiration
+      ) {
+        throw new Error("Resposta inválida da API");
+      }
+
+      signIn(
+        response.data.usuario,
+        response.data.token,
+        response.data.expiration,
+      );
 
       setIsError(false);
-      setMessage('Conta criada com sucesso!');
-      setTimeout(() => navigate('/login'), 3000);
-    } catch (err: any) {
-      const message = err?.error_description || err?.message || 'Erro desconhecido';
-      setMessage(message);
+      setMessage("Cadastro criado!");
+
+      setTimeout(() => {
+        navigate("/");
+      }, 1000);
+    } catch (error: unknown) {
+      setMessage(
+        error instanceof AxiosError
+          ? error.response!.data.message
+          : "Erro para registrar os dados.",
+      );
     } finally {
       setLoading(false);
     }
@@ -59,9 +75,15 @@ export default function Register() {
           </p>
         </div>
 
-        <form className="px-6 pb-6 space-y-4" onSubmit={(e) => e.preventDefault()}>
+        <form
+          className="px-6 pb-6 space-y-4"
+          onSubmit={(e) => e.preventDefault()}
+        >
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Nome
             </label>
             <input
@@ -77,7 +99,10 @@ export default function Register() {
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               E-mail
             </label>
             <input
@@ -94,7 +119,10 @@ export default function Register() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 Senha
               </label>
               <input
@@ -111,7 +139,10 @@ export default function Register() {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 Confirmar senha
               </label>
               <input
@@ -123,32 +154,22 @@ export default function Register() {
                 className="mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-transparent dark:text-gray-100 
                            focus:border-purple-500 focus:ring-purple-500 outline-0 border-b-2 py-2 duration-200"
                 autoComplete="new-password"
-                onChange={(e) => setForm({ ...form, confirmPass: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, confirmPass: e.target.value })
+                }
               />
             </div>
           </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              id="terms"
-              type="checkbox"
-              required
-              className="rounded border-gray-300 dark:border-gray-600 text-purple-600 focus:ring-purple-500"
-            />
-            <label htmlFor="terms" className="text-sm text-gray-700 dark:text-gray-300">
-              Aceito os termos de uso e política de privacidade
-            </label>
-          </div>
-
           <button
             type="submit"
             onClick={() => !loading && handleSubmit()}
-            className={`w-full ${!loading
+            className={`w-full ${
+              !loading
                 ? "bg-purple-600 hover:bg-purple-700 text-white"
                 : "bg-gray-600 text-gray-200 cursor-not-allowed"
-              } font-medium py-3 rounded-lg transition duration-200 hover:scale-[1.02] hover:cursor-pointer`}
+            } font-medium py-3 rounded-lg transition duration-200 hover:scale-[1.02] hover:cursor-pointer`}
           >
-            {loading ? 'Carregando...' : 'Criar conta'}
+            {loading ? "Carregando..." : "Criar conta"}
           </button>
 
           <p className="text-sm text-center text-gray-600 dark:text-gray-400">

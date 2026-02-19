@@ -1,32 +1,53 @@
-import { useState } from "react"
-import { useNavigate } from "react-router"
-import { signIn } from "../services/authServices"
-import BoxMessage from "../components/BoxMessage"
+import { useState } from "react";
+import { useNavigate } from "react-router";
+import { AutorizacaoApi } from "../api";
+import { apiConfig } from "../config/api";
+import { useAuth } from "../context";
+import { BoxMessage } from "../components";
+import { AxiosError } from "axios";
 
 export default function Login() {
-  const [form, setForm] = useState({ email: "", password: "" })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | undefined>()
-  const navigate = useNavigate()
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const { signIn } = useAuth();
+  const [error, setError] = useState<string | null>();
+  const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError(undefined)
+    setError(null);
+    e.preventDefault();
 
-    if (!form.email || !form.password) {
-      setError("Preencha e-mail e senha")
-      return
-    }
-
-    setLoading(true)
     try {
-      await signIn(form.email, form.password,)
-      navigate("/", { replace: true })
-    } catch (err: any) {
-      const message = err?.error_description || err?.message || "Credenciais inválidas"
-      setError(message)
+      setLoading(true);
+      const authApi = new AutorizacaoApi(apiConfig);
+
+      const response = await authApi.usuarioLogin({
+        email: form.email,
+        password: form.password,
+      });
+      if (
+        !response.data.token ||
+        !response.data.usuario ||
+        !response.data.expiration
+      ) {
+        throw new Error("Resposta inválida da API");
+      }
+
+      signIn(
+        response.data.usuario,
+        response.data.token,
+        response.data.expiration,
+      );
+
+      navigate("/");
+    } catch (error: unknown) {
+      setError(
+        error instanceof AxiosError
+          ? error.response!.data.message
+          : "Erro para entrar na sua conta",
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -96,10 +117,11 @@ export default function Login() {
           <button
             type="submit"
             className={`w-full font-medium py-3 rounded-lg transition duration-200 hover:scale-[1.02] hover:cursor-pointer
-                        ${loading
-                ? "bg-gray-600 text-gray-200 cursor-not-allowed"
-                : "bg-purple-600 hover:bg-purple-700 text-white"
-              }`}
+                        ${
+                          loading
+                            ? "bg-gray-600 text-gray-200 cursor-not-allowed"
+                            : "bg-purple-600 hover:bg-purple-700 text-white"
+                        }`}
             disabled={loading}
           >
             {loading ? "Entrando..." : "Entrar"}
@@ -116,5 +138,5 @@ export default function Login() {
 
       {error && <BoxMessage error={true} message={error} />}
     </main>
-  )
+  );
 }

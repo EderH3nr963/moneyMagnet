@@ -1,58 +1,90 @@
-import { useEffect, useState } from "react"
-import { updatePassword } from "../services/userServices"
-import BoxMessage from "../components/BoxMessage"
+import { useEffect, useState } from "react";
+import { UsuarioApi } from "../api";
+import { apiConfig } from "../config/api";
+import { BoxMessage } from "../components";
+import { AxiosError } from "axios";
 
 export default function UpdatePassword() {
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [token, setToken] = useState("");
+  const [password, setPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    const hashParams = new URLSearchParams(window.location.hash.replace("#", ""))
+    const hashParams = new URLSearchParams(
+      window.location.hash.replace("#", ""),
+    );
 
-    if (hashParams.get("error")) {
-      setError(hashParams.get("error_description") || "Token inválido.")
-      setTimeout(() => {
-        window.location.href = "/login"
-      }, 3000)
+    if (hashParams.get("token")) {
+      setToken(hashParams.get("token") || "");
     }
-  }, [])
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setSuccess(null)
-
-    if (password !== confirmPassword) {
-      setError("As senhas não coincidem.")
-      return
-    }
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
 
     try {
-      setLoading(true)
-      await updatePassword({ password })
-      setSuccess("Sua senha foi atualizada com sucesso.")
+      setLoading(true);
+
+      console.log(token);
+
+      const usuarioApi = new UsuarioApi(apiConfig);
+
+      await usuarioApi.updatePassword({
+        currentPassword: currentPassword,
+        password: password,
+        confirmPassword: confirmPassword,
+      });
+
+      setSuccess("Sua senha foi atualizada com sucesso.");
       setTimeout(() => {
-        window.location.href = "/login"
-      }, 1500)
-    } catch (err: any) {
-      setError(err?.message || "Não foi possível atualizar sua senha.")
+        window.location.href = "/login";
+      }, 1500);
+    } catch (error: unknown) {
+      setError(
+        error instanceof AxiosError
+          ? error.response!.data.message
+          : "Erro ao atualizar a senha.",
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   return (
     <main className="min-h-screen bg-linear-to-br from-purple-50 to-indigo-100 dark:from-gray-900 dark:to-gray-950 flex items-center justify-center px-4 py-12">
       <section className="w-full max-w-md rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-8 shadow-lg dark:shadow-black/30">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Atualizar sua senha</h1>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+          Atualizar sua senha
+        </h1>
         <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
           Digite sua nova senha e confirme para continuar.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Senha Atual
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Digite sua nova senha"
+              autoComplete="new-password"
+              className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-700 outline-none"
+            />
+          </div>
+
           <div>
             <label
               htmlFor="password"
@@ -109,5 +141,5 @@ export default function UpdatePassword() {
 
       {error && <BoxMessage error={true} message={error} />}
     </main>
-  )
+  );
 }

@@ -1,11 +1,9 @@
-export type CategoryType = "receita" | "despesa";
+export type CategoryType = "RECEITA" | "DESPESA";
 
 export interface Category {
-  id: number;
+  id: string;
   name: string;
-  color: string;
   type: CategoryType;
-  icon?: string;
 }
 
 export type CategoryWithoutId = Omit<Category, "id">;

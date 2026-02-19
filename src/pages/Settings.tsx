@@ -1,23 +1,20 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext";
-import BoxMessage from "../components/BoxMessage";
-import NavBar from "../components/NavBar";
-import Footer from "../components/Fotter";
-import { useTheme } from "../context/ThemeContext";
+import { useAuth, useTheme } from "../context";
+import { BoxMessage, NavBar, Footer } from "../components";
 
 export default function Settings() {
   const { user } = useAuth();
   const [successMessage, setSuccessMessage] = useState<string | null>("");
   const {theme, toggleTheme} = useTheme();
 
-  const displayName = (user?.user_metadata?.name as string | undefined) ?? (user?.email as string | undefined) ?? 'Usuário';
+  const displayName = (user?.username as string | undefined) ?? (user?.email as string | undefined) ?? 'Usuário';
   const initials = displayName
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
     .map((n) => n[0].toUpperCase())
     .join('');
-  const avatarUrl = (user?.user_metadata?.avatar_url as string | undefined) ?? undefined;
+  const avatarUrl = undefined;
 
   useEffect(() => {
     const hashParams = new URLSearchParams(window.location.hash.replace("#", ""));
@@ -49,7 +46,7 @@ export default function Settings() {
                 )}
               </div>
               <div className="flex-1 text-center md:text-left">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{user?.user_metadata?.name || displayName}</h2>
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{user?.username || displayName}</h2>
                 <p className="text-sm text-gray-600 mt-1 dark:text-gray-300">{user?.email}</p>
                 <div className="mt-4 flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
                   <a href="/edit-profile" className="inline-flex items-center justify-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 hover:cursor-pointer hover:scale-105 duration-300">
@@ -72,7 +69,7 @@ export default function Settings() {
                 <dl className="mt-3 space-y-2">
                   <div className="flex justify-between">
                     <dt className="text-sm text-gray-600 dark:text-gray-300">Nome</dt>
-                    <dd className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.user_metadata?.name || '-'}</dd>
+                    <dd className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.username || '-'}</dd>
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-sm text-gray-600 dark:text-gray-300">E-mail</dt>
