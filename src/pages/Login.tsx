@@ -14,8 +14,8 @@ export default function Login() {
   const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent) {
-    setError(null);
     e.preventDefault();
+    setError(null);
 
     try {
       setLoading(true);
@@ -115,7 +115,6 @@ export default function Login() {
           </div>
 
           <button
-            type="submit"
             className={`w-full font-medium py-3 rounded-lg transition duration-200 hover:scale-[1.02] hover:cursor-pointer
                         ${
                           loading
@@ -123,6 +122,7 @@ export default function Login() {
                             : "bg-purple-600 hover:bg-purple-700 text-white"
                         }`}
             disabled={loading}
+            type="submit"
           >
             {loading ? "Entrando..." : "Entrar"}
           </button>
