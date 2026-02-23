@@ -47,7 +47,12 @@ export default function NavBar() {
                 </a>
               </li>
               <li className="flex items-center hover:bg-gray-100 px-3 py-1 rounded-lg hover:cursor-pointer group dark:hover:bg-gray-800 dark:text-gray-100">
-                <a href="/categories">Categorias</a>
+                <a
+                  href="/categories"
+                  className="duration-300 text-mint-500 group-hover:text-purple-500"
+                >
+                  Categorias
+                </a>
               </li>
               <li className="flex items-center hover:bg-gray-100 px-3 py-1 rounded-lg hover:cursor-pointer group dark:hover:bg-gray-800 dark:text-gray-100">
                 <a href="/settings">
@@ -163,7 +168,7 @@ export default function NavBar() {
             onClick={() => {
               signOut();
             }}
-            className="block rounded-md px-3 py-2 text-base font-medium text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="block rounded-md px-3 py-2 text-base font-medium text-red-500 hover:bg-red-400/30 dark:hover:bg-red-800/30"
           >
             Sair
           </div>
