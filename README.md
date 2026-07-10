@@ -1,72 +1,40 @@
-### Money Magnet(Front End)
+# Money Magnet Frontend
 
-Aplicação web para gestão financeira de Microempreendedores (ME), com dashboard interativo, categorias personalizáveis e importação de planilhas .xlsx.
+Interface web do Money Magnet, criada com Next.js, React, TypeScript e Tailwind CSS. O front consome a API Spring Boot do backend para autenticação, dashboard financeiro, instituições, contas, transações, categorias, regras por merchant e preferências do usuário.
 
-O objetivo do projeto é oferecer uma ferramenta simples e eficiente para controle de receitas, despesas e visualização estratégica de dados financeiros.
+## Stack
 
-## Tecnologias Usadas
-
-- React
+- Next.js 16
+- React 19
 - TypeScript
-- Recharts
-- Axios
-- TailwindCSS
-- Integração com API Spring Boot
-- Importação de planilhas .xlsx
+- Tailwind CSS 4
+- Lucide React
+- Chart.js e react-chartjs-2
+- Pluggy Connect no fluxo de conexão bancária
 
-## Funcionalidades
+## Pré-requisitos
 
-Funcionalidades
+- Node.js compatível com Next.js 16
+- Backend rodando em `http://localhost:8080`
+- NPM instalado
 
-✅ Dashboard financeiro com gráficos dinâmicos 
+## Configuração
 
-✅ Cadastro de receitas e despesas
-
-✅ Categorias personalizáveis
-
-✅ Sumário mensal(mês atual)
-
-✅ Autenticação com JWT
-
-✅ Integração com API REST
-
-✅ Importação de planilhas .xlsx
-
-🔜 Exportação de relatórios (planejado)
-
-## Arquitetura do Projeto
+Copie o arquivo de exemplo:
 
 ```bash
-src/
-│
-├── api/ # Integração com backend
-├── components/ # Componentes reutilizáveis
-├── hooks/ # Hooks customizados
-├── pages/ # Páginas da aplicação
-├── contexts/ # Context API (Auth)
-├── utils/ # Funções auxiliares
-└── types/ # Tipagens globais
+cp .env.example .env.local
 ```
 
-## Pré Requisitos
+Variável disponível:
 
-Node.js 18+
-npm ou yarn
-Backend da API rodando
-
-## Instalação
-
-Clone o repositório:
-
-```bash
-git clone https://github.com/EderH3nr963/moneyMagnet.git
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
 
-Entre na pasta:
+Se o backend estiver em outra porta ou URL, altere `NEXT_PUBLIC_API_URL`.
 
-```
-cd moneyMagnet
-```
+## Como executar
 
 Instale as dependências:
 
@@ -74,29 +42,87 @@ Instale as dependências:
 npm install
 ```
 
-Crie um arquivo .env:
-
-```bash
-VITE_API_URL=https://sua-api.onrender.com
-```
-
-Inicie o projeto:
+Inicie em desenvolvimento:
 
 ```bash
 npm run dev
 ```
 
-## Integração com Back-End
+Acesse:
 
-- O frontend consome a API desenvolvida em Spring Boot, responsável por:
-- Autenticação JWT
-- CRUD de transações
-- Dashboard financeiro
-- Categorias
-- Relatórios
+```text
+http://localhost:3000
+```
 
-## Deploy
+## Scripts
 
-Frontend hospedado na Vercel
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+```
 
-Backend hospedado no Render
+## Rotas principais
+
+- `/auth/login`: login
+- `/auth/register`: cadastro
+- `/auth/forgot-password`: solicitação de recuperação de senha
+- `/reset-password`: redefinição de senha por token
+- `/dashboard`: resumo financeiro
+- `/transactions`: histórico de transações
+- `/categories`: categorias do sistema e categorias do usuário
+- `/institutions`: instituições conectadas
+- `/institutions/[institutionId]`: detalhes da instituição
+- `/settings`: perfil, segurança, aparência e regras por merchant
+
+## Fluxos implementados
+
+- Autenticação com JWT salvo em `localStorage`
+- Cadastro com login automático após sucesso
+- Recuperação e redefinição de senha
+- Dashboard com resumo, histórico financeiro, gráficos e ações rápidas
+- Integração Pluggy Connect para conectar instituições
+- Listagem de contas e instituições
+- Histórico de transações com filtro por período
+- Alteração de categoria da transação
+- Criação de regra automática por merchant
+- CRUD de categorias personalizadas
+- Preferência de tema claro/escuro
+- Configurações de perfil, senha e exclusão de conta
+
+## Integração com a API
+
+As chamadas ficam centralizadas em:
+
+```text
+lib/api.ts
+```
+
+O backend deve expor os endpoints em:
+
+```text
+http://localhost:8080
+```
+
+Swagger do backend:
+
+```text
+http://localhost:8080/swagger-ui.html
+```
+
+## Validação
+
+Para validar o front:
+
+```bash
+npm run lint
+npm run build
+```
+
+Observação: se o ambiente local tiver o comando `npm` com problema, é possível rodar diretamente:
+
+```bash
+node .\node_modules\eslint\bin\eslint.js .
+node .\node_modules\next\dist\bin\next build
+```
