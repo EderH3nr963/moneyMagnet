@@ -34,7 +34,7 @@ export default function ResetPasswordPage() {
     setLoading(true);
 
     try {
-      await resetPassword(token, { password, confirmPassword });
+      await resetPassword({ token, password, confirmPassword });
       setSuccess(true);
       window.setTimeout(() => router.replace("/auth/login"), 1800);
     } catch (requestError) {
