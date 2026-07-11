@@ -28,7 +28,7 @@ const quickActions = [
   {
     title: "Instituicoes",
     description: "Veja bancos, contas e cartoes conectados",
-    href: "/institutions",
+    href: "/banks",
     icon: Building2,
   },
 ];

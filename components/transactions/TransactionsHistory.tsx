@@ -170,7 +170,7 @@ function HistoryContent({
   return (
     <>
       <div className="hidden overflow-x-auto md:block">
-        <table className="min-w-[760px] w-full">
+        <table className="min-w-190 w-full">
           <thead>
             <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
               <th className="px-5 py-3 font-medium">Descrição</th>
@@ -256,7 +256,7 @@ function CategoryChangeModal({
         </div>
 
         <div className="mt-4 rounded-lg border border-border bg-background p-3 text-sm">
-          <p className="break-words font-medium">
+          <p className="break-words-word font-medium">
             {transaction.merchant || transaction.description}
           </p>
           <p className="mt-1 text-muted-foreground">

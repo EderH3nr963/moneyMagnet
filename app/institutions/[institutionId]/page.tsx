@@ -29,7 +29,8 @@ const TABS: Array<{
 ];
 
 export default function InstitutionProfilePage() {
-  const params = useParams<{ institutionId: string }>();
+  const params = useParams<{ institutionId?: string; itemId?: string }>();
+  const itemId = params.itemId ?? params.institutionId ?? "";
   const router = useRouter();
   const { setOpen } = useSidebar();
   const {
@@ -45,7 +46,7 @@ export default function InstitutionProfilePage() {
     changeTransactionCategory,
     changePage,
     changePageSize,
-  } = useInstitutionProfile(params.institutionId);
+  } = useInstitutionProfile(itemId);
   const {
     categories,
     loading: loadingCategories,
@@ -67,7 +68,7 @@ export default function InstitutionProfilePage() {
       <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-4">
         <button
           type="button"
-          onClick={() => router.push("/institutions")}
+          onClick={() => router.push("/banks")}
           className="inline-flex min-w-0 items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm transition hover:bg-muted"
         >
           <ArrowLeft size={16} />

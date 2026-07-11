@@ -19,6 +19,7 @@ import {
   getMerchantCategoryRules,
   getProfile,
   getToken,
+  logout,
   saveUser,
   updatePassword,
   updateProfile,
@@ -182,8 +183,8 @@ export default function SettingsPage() {
     }
   }
 
-  function logout() {
-    clearSession();
+  async function handleLogout() {
+    await logout();
     router.replace("/auth");
   }
 
@@ -287,7 +288,7 @@ export default function SettingsPage() {
           canDelete={canDelete}
           deleting={deleting}
           onDeleteConfirmationChange={setDeleteConfirmation}
-          onLogout={logout}
+          onLogout={() => void handleLogout()}
           onDeleteAccount={() => void deleteAccount()}
         />
       </div>

@@ -74,12 +74,12 @@ export function TransactionCard({
       <div className="flex flex-col gap-2 min-[420px]:flex-row min-[420px]:items-start min-[420px]:justify-between min-[420px]:gap-4">
         <div className="min-w-0">
           <p className="truncate font-medium">{getTransactionTitle(transaction)}</p>
-          <p className="mt-1 break-words text-xs text-muted-foreground">
+          <p className="mt-1 break-words-word text-xs text-muted-foreground">
             {transaction.accountName} · {formatTransactionDate(transaction)}
           </p>
         </div>
         <p
-          className={`break-words font-semibold min-[420px]:shrink-0 min-[420px]:text-right ${
+          className={`break-words-word font-semibold min-[420px]:shrink-0 min-[420px]:text-right ${
             income ? "text-emerald-500" : "text-red-400"
           }`}
         >

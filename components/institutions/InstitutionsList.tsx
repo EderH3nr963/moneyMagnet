@@ -59,7 +59,7 @@ export default function InstitutionsList({
           {institutions.map((institution) => (
             <Link
               key={institution.id}
-              href={`/institutions/${institution.id}`}
+              href={`/banks/${institution.id}`}
               className="block rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <InstitutionCard institution={institution} />
@@ -99,7 +99,7 @@ function InstitutionCard({ institution }: { institution: InstitutionGroup }) {
         </div>
         <div className="min-w-0 sm:shrink-0 sm:text-right">
           <p className="text-xs text-muted-foreground">Saldo</p>
-          <p className="break-words font-semibold">
+          <p className="break-words-word font-semibold">
             {currencyFormatter.format(institution.totalBalance)}
           </p>
         </div>
@@ -124,7 +124,7 @@ function AccountRow({ account }: { account: Account }) {
           {account.number ? ` - ${account.number}` : ""}
         </p>
       </div>
-      <span className="break-words text-sm font-semibold min-[420px]:shrink-0">
+      <span className="break-words-word text-sm font-semibold min-[420px]:shrink-0">
         {currencyFormatter.format(account.balance)}
       </span>
     </div>

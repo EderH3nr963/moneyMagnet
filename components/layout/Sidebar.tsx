@@ -27,7 +27,7 @@ const navigation = [
   },
   {
     title: "Instituições",
-    href: "/institutions",
+    href: "/banks",
     icon: Building2,
   },
   {

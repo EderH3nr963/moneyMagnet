@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { ApiError, clearSession, getAccounts, getToken } from "@/lib/api";
+import { ApiError, clearSession, getBanks, getToken } from "@/lib/api";
 import type { Account } from "@/types/api";
 
 export interface InstitutionGroup {
@@ -16,42 +16,9 @@ export interface InstitutionGroup {
   totalCreditLimit: number;
 }
 
-function institutionKey(account: Account) {
-  return account.institutionId;
-}
-
-function groupAccounts(accounts: Account[]): InstitutionGroup[] {
-  const groups = new Map<string, InstitutionGroup>();
-
-  for (const account of accounts) {
-    const id = institutionKey(account);
-    const current = groups.get(id) ?? {
-      id,
-      name: account.institutionName,
-      logoUrl: account.institutionLogoUrl,
-      primaryColor: account.institutionPrimaryColor,
-      accounts: [],
-      totalBalance: 0,
-      totalCreditLimit: 0,
-    };
-
-    current.accounts.push(account);
-    if (account.type !== "CREDIT") {
-      current.totalBalance += account.balance ?? 0;
-    }
-    current.totalCreditLimit += account.creditLimit ?? 0;
-
-    groups.set(id, current);
-  }
-
-  return Array.from(groups.values()).sort((left, right) =>
-    left.name.localeCompare(right.name, "pt-BR"),
-  );
-}
-
 export function useInstitutions() {
   const router = useRouter();
-  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [institutions, setInstitutions] = useState<InstitutionGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
@@ -61,7 +28,21 @@ export function useInstitutions() {
     setError("");
 
     try {
-      setAccounts(await getAccounts(signal));
+      const banks = await getBanks(signal);
+      setInstitutions(
+        banks.map((bank) => ({
+          ...bank,
+          totalBalance: bank.accounts.reduce(
+            (total, account) =>
+              total + (account.type === "CREDIT" ? 0 : account.balance ?? 0),
+            0,
+          ),
+          totalCreditLimit: bank.accounts.reduce(
+            (total, account) => total + (account.creditLimit ?? 0),
+            0,
+          ),
+        })),
+      );
     } catch (requestError) {
       if (
         requestError instanceof DOMException &&
@@ -103,8 +84,6 @@ export function useInstitutions() {
     return () => controller.abort();
   }, [load, router]);
 
-  const institutions = useMemo(() => groupAccounts(accounts), [accounts]);
-
   const filteredInstitutions = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return institutions;
@@ -125,7 +104,10 @@ export function useInstitutions() {
   const totals = useMemo(
     () => ({
       institutions: institutions.length,
-      accounts: accounts.length,
+      accounts: institutions.reduce(
+        (total, institution) => total + institution.accounts.length,
+        0,
+      ),
       balance: institutions.reduce(
         (total, institution) => total + institution.totalBalance,
         0,
@@ -135,11 +117,11 @@ export function useInstitutions() {
         0,
       ),
     }),
-    [accounts.length, institutions],
+    [institutions],
   );
 
   return {
-    accounts,
+    accounts: institutions.flatMap((institution) => institution.accounts),
     institutions: filteredInstitutions,
     totals,
     loading,
