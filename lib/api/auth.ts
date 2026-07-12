@@ -34,10 +34,18 @@ export function forgotPassword(email: string) {
 }
 
 export function resetPassword(
-  payload: { token: string, password: string; confirmPassword: string },
+  payload: { token: string; password: string; confirmPassword: string },
 ) {
   return request<void>(
     `/api/v1/auth/reset-password`,
+    { method: "POST", body: JSON.stringify(payload) },
+    false,
+  );
+}
+
+export function confirmEmailChange(payload: { token: string; password: string }) {
+  return request<void>(
+    "/api/v1/auth/confirm-email",
     { method: "POST", body: JSON.stringify(payload) },
     false,
   );

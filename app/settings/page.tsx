@@ -20,6 +20,7 @@ import {
   getProfile,
   getToken,
   logout,
+  requestEmailChange,
   saveUser,
   updatePassword,
   updateProfile,
@@ -125,13 +126,21 @@ export default function SettingsPage() {
     setNotice(null);
 
     try {
-      const updatedUser = await updateProfile({
-        username: username.trim(),
-        email: email.trim(),
+      if (username.trim() !== user?.username) {
+        const updatedUser = await updateProfile({
+          username: username.trim(),
+          email: email.trim(),
+        });
+        setUser(updatedUser);
+        saveUser(updatedUser);
+      } else {
+        await requestEmailChange(email.trim());
+      }
+      setNotice({
+        type: "success",
+        message:
+          "Enviamos um e-mail de confirmação para o novo endereço. A alteração só será concluída após a confirmação.",
       });
-      setUser(updatedUser);
-      saveUser(updatedUser);
-      setNotice({ type: "success", message: "Perfil atualizado." });
     } catch (requestError) {
       handleAuthError(requestError, router);
       showError(setNotice, requestError, "Nao foi possivel atualizar seu perfil.");

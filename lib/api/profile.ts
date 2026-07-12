@@ -13,6 +13,13 @@ export function updateProfile(payload: Pick<User, "username" | "email">) {
   });
 }
 
+export function requestEmailChange(email: string) {
+  return request<void>("/api/v1/profile/email/request-change-email", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
 export function updatePassword(payload: {
   currentPassword: string;
   password: string;
