@@ -1,4 +1,4 @@
-import { Filter, RefreshCw, X } from "lucide-react";
+import { Filter, RefreshCw, Search, X } from "lucide-react";
 import type { FormEvent } from "react";
 import { useMemo, useState } from "react";
 
@@ -21,8 +21,11 @@ export default function TransactionsFilters({
 }: TransactionsFiltersProps) {
   const [startDate, setStartDate] = useState(filters.startDate ?? "");
   const [endDate, setEndDate] = useState(filters.endDate ?? "");
+  const [search, setSearch] = useState(filters.search ?? "");
 
-  const hasActiveFilters = Boolean(filters.startDate || filters.endDate);
+  const hasActiveFilters = Boolean(
+    filters.search || filters.startDate || filters.endDate,
+  );
   const hasInvalidRange = useMemo(
     () => Boolean(startDate && endDate && startDate > endDate),
     [endDate, startDate],
@@ -31,10 +34,11 @@ export default function TransactionsFilters({
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (hasInvalidRange) return;
-    onApply({ startDate, endDate });
+    onApply({ search, startDate, endDate });
   }
 
   function handleClear() {
+    setSearch("");
     setStartDate("");
     setEndDate("");
     onClear();
@@ -44,8 +48,22 @@ export default function TransactionsFilters({
     <section className="m-4 rounded-2xl border border-border bg-card p-4">
       <form
         onSubmit={handleSubmit}
-        className="grid gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end"
+        className="grid gap-3 lg:grid-cols-[1.5fr_1fr_1fr_auto] lg:items-end"
       >
+        <label className="grid gap-2 text-sm">
+          <span className="text-muted-foreground">Pesquisar</span>
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2.5 transition focus-within:border-primary">
+            <Search size={18} className="shrink-0 text-muted-foreground" />
+            <input
+              type="text"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Descrição, loja ou conta"
+              className="w-full bg-transparent text-foreground outline-none placeholder:text-muted-foreground"
+            />
+          </div>
+        </label>
+
         <label className="grid gap-2 text-sm">
           <span className="text-muted-foreground">Data inicial</span>
           <input
@@ -78,7 +96,9 @@ export default function TransactionsFilters({
           <button
             type="button"
             onClick={handleClear}
-            disabled={loading || (!hasActiveFilters && !startDate && !endDate)}
+            disabled={
+              loading || (!hasActiveFilters && !search && !startDate && !endDate)
+            }
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 not-disabled:cursor-pointer"
           >
             <X size={16} />
@@ -98,7 +118,7 @@ export default function TransactionsFilters({
 
       {hasInvalidRange && (
         <p className="mt-3 text-sm text-red-400">
-          A data inicial precisa ser menor ou igual Ã data final.
+          A data inicial precisa ser menor ou igual a data final.
         </p>
       )}
     </section>

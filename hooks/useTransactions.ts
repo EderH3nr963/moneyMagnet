@@ -181,6 +181,7 @@ export function useTransactions() {
     setLoading(true);
     setPage(0);
     setFiltersState({
+      search: nextFilters.search?.trim() || undefined,
       startDate: nextFilters.startDate || undefined,
       endDate: nextFilters.endDate || undefined,
     });
