@@ -1,29 +1,33 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Item as PluggyItem } from "pluggy-js";
 
 import {
   ApiError,
   clearSession,
-  createAndSyncItem,
   createPluggyConnectToken,
   getDashboard,
   getExpensesByCategory,
   getFinancialHistory,
   getToken,
+  refreshAccessToken,
+  validAccessToken,
 } from "@/lib/api";
 import type {
   DashboardResponse,
   FinancialHistoryPeriod,
   MonthYearFilter,
 } from "@/types/api";
+import { API_URL } from "@/lib/api/config";
+import { fetchEventSource } from "@microsoft/fetch-event-source";
 
 export type ConnectionNotice = {
   type: "loading" | "success" | "error";
   message: string;
 };
+
+class FatalSseError extends Error { }
 
 function currentMonthYear(): MonthYearFilter {
   const now = new Date();
@@ -56,6 +60,16 @@ export function useDashboard() {
   const [connectToken, setConnectToken] = useState<string | null>(null);
   const [connectionNotice, setConnectionNotice] =
     useState<ConnectionNotice | null>(null);
+  const financialHistoryPeriodRef = useRef(financialHistoryPeriod);
+  const expensesByCategoryFilterRef = useRef(expensesByCategoryFilter);
+
+  useEffect(() => {
+    financialHistoryPeriodRef.current = financialHistoryPeriod;
+  }, [financialHistoryPeriod]);
+
+  useEffect(() => {
+    expensesByCategoryFilterRef.current = expensesByCategoryFilter;
+  }, [expensesByCategoryFilter]);
 
   const loadDashboard = useCallback(
     async (signal?: AbortSignal) => {
@@ -206,40 +220,157 @@ export function useDashboard() {
             ? requestError.message
             : "Não foi possível iniciar a conexão bancária.",
       });
+
+      setTimeout(() => {
+        setConnectionNotice(null);
+      }, 5_000);
     }
   }
 
-  async function handleConnectionSuccess({ item }: { item: PluggyItem }) {
+  async function handleConnectionSuccess() {
     setConnectionNotice({
-      type: "loading",
-      message: "Conta conectada. Sincronizando contas e transações...",
+      type: "success",
+      message: "Conta conectada. Sincronizando contas e transações em segundo plano...",
     });
 
-    try {
-      const sync = await createAndSyncItem(item.id);
-      setConnectToken(null);
-      await loadDashboard();
-      setFinancialHistoryPeriod(12);
-      setExpensesByCategoryFilter(currentMonthYear());
-      setConnectionNotice({
-        type: "success",
-        message: `${sync.accountsSynced} conta(s) e ${sync.transactionsSynced} transação(ões) sincronizadas.`,
-      });
-    } catch (requestError) {
-      setConnectToken(null);
-      setConnectionNotice({
-        type: "error",
-        message:
-          requestError instanceof ApiError
-            ? requestError.message
-            : "A conta foi conectada, mas não foi possível sincronizar os dados.",
-      });
-    }
+    setTimeout(() => {
+      setConnectionNotice(null);
+    }, 5_000);
   }
 
   function closePluggyConnect() {
     setConnectToken(null);
   }
+
+  useEffect(() => {
+    const sseController = new AbortController();
+    const requestController = new AbortController();
+    let refreshPromise: Promise<void> | null = null;
+    let refreshQueued = false;
+
+    const refreshDashboardData = () => {
+      if (refreshPromise) {
+        refreshQueued = true;
+        return refreshPromise;
+      }
+
+      refreshPromise = Promise.all([
+        getDashboard(requestController.signal),
+        getFinancialHistory(financialHistoryPeriodRef.current, requestController.signal),
+        getExpensesByCategory(
+          expensesByCategoryFilterRef.current,
+          requestController.signal,
+        ),
+      ])
+        .then(([nextDashboard, financialHistory, expensesByCategory]) => {
+          setDashboard({ ...nextDashboard, financialHistory, expensesByCategory });
+          setError("");
+        })
+        .catch((requestError: unknown) => {
+          if (requestController.signal.aborted) return;
+          if (requestError instanceof ApiError && requestError.status === 401) {
+            clearSession();
+            router.replace("/auth");
+            sseController.abort();
+            return;
+          }
+          setError(
+            requestError instanceof ApiError
+              ? requestError.message
+              : "Nao foi possivel atualizar o dashboard apos a sincronizacao.",
+          );
+        })
+        .finally(() => {
+          refreshPromise = null;
+          if (refreshQueued && !requestController.signal.aborted) {
+            refreshQueued = false;
+            void refreshDashboardData();
+          }
+        });
+
+      return refreshPromise;
+    };
+
+    const connect = async () => {
+      await fetchEventSource(
+        `${API_URL}/api/v1/dashboard/events`,
+        {
+          method: "GET",
+
+          credentials: "include",
+          signal: sseController.signal,
+          openWhenHidden: true,
+          fetch: async (input, init) => {
+            const headers = new Headers(init?.headers);
+            headers.set("Authorization", `Bearer ${await validAccessToken()}`);
+            return fetch(input, { ...init, headers });
+          },
+
+          async onopen(response) {
+            if (response.status === 401) {
+              await refreshAccessToken();
+              throw new Error("Token SSE renovado; reconectando.");
+            }
+
+            if (!response.ok) {
+              throw new FatalSseError(
+                `Erro ao abrir conexão SSE: ${response.status}`
+              );
+            }
+
+            const contentType =
+              response.headers.get("content-type");
+
+            if (!contentType?.includes("text/event-stream")) {
+              throw new FatalSseError(
+                `Resposta inválida para SSE: ${contentType}`
+              );
+            }
+          },
+
+          onmessage(event) {
+            if (event.event === "ITEM_CREATED_UPDATED") {
+              void refreshDashboardData();
+
+              setConnectionNotice({
+                type: "success",
+                message: "Conta conectada. Sincronizando contas e transações em segundo plano...",
+              });
+
+              setTimeout(() => {
+                setConnectionNotice(null);
+              }, 5_000);
+            }
+          },
+
+          onclose() {
+            throw new Error("Conexao SSE encerrada; reconectando.");
+          },
+
+          onerror(error) {
+            if (error instanceof FatalSseError) throw error;
+            return 2_000;
+          },
+        }
+      );
+    };
+
+    connect().catch((error: unknown) => {
+      if (!sseController.signal.aborted) {
+        if (error instanceof ApiError && error.status === 401) {
+          clearSession();
+          router.replace("/auth");
+          return;
+        }
+        console.error("Não foi possível conectar ao SSE:", error);
+      }
+    });
+
+    return () => {
+      sseController.abort();
+      requestController.abort();
+    };
+  }, [router]);
 
   function handlePluggyError(message?: string) {
     setConnectToken(null);

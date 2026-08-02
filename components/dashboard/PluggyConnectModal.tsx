@@ -11,7 +11,7 @@ const PluggyConnect = dynamic(
 
 interface PluggyConnectModalProps {
   connectToken: string | null;
-  onSuccess: (payload: { item: PluggyItem }) => void;
+  onSuccess: () => void;
   onClose: () => void;
   onError: (message?: string) => void;
   onLoadError: () => void;
